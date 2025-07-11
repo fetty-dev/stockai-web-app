@@ -1,0 +1,45 @@
+{
+  "name": "stockai",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fetty-dev/stockai-web-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fetty-dev/stockai-web-app/issues"
+  },
+  "homepage": "https://github.com/fetty-dev/stockai-web-app#readme",
+  "description": "",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/node": "^24.0.13",
+    "@types/react": "^19.1.8",
+    "@typescript-eslint/eslint-plugin": "^8.36.0",
+    "next": "^15.3.5",
+    "prettier": "^3.6.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.30.1",
+    "eslint-config-next": "^15.3.5",
+    "postcss": "^8.5.6"
+  }
+}
