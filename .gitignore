@@ -40,8 +40,4 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
-CLAUDE.md
-GITHUB.md
-TODO.md
-UIUX.md
-dev-logs/
+docs/utilities/
