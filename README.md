@@ -6,6 +6,7 @@
 
 *Understand market movements with clear explanations and transparent sources*
 
+[![CI Pipeline](https://github.com/fetty-dev/stockai-web-app/workflows/CI%20Pipeline/badge.svg)](https://github.com/fetty-dev/stockai-web-app/actions)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -97,6 +98,25 @@ stockai/
 └── 📋 [config files]      # ESLint, Tailwind, etc.
 ```
 
+## 🔧 Environment Variables
+
+StockAI requires the following environment variables to function properly:
+
+| Variable | Description | Required | Example |
+|----------|-------------|----------|---------|
+| `ALPHA_VANTAGE_API_KEY` | API key for stock data from Alpha Vantage | ✅ Yes | `ABC123XYZ` |
+| `OPENAI_API_KEY` | OpenAI API key for AI explanations | 🔄 Future | `sk-...` |
+| `NODE_ENV` | Application environment | 🔄 Auto | `development` |
+
+### 📝 Setup Instructions
+
+1. **Copy the template**: `cp .env.example .env.local`
+2. **Get Alpha Vantage API Key**: [Free registration](https://www.alphavantage.co/support/#api-key)
+3. **Add your key**: Edit `.env.local` and replace `your_alpha_vantage_api_key_here`
+4. **Verify setup**: Run `npm run dev` to test the connection
+
+> **🔒 Security Note**: Never commit `.env.local` or `.env` files to version control. These files are automatically ignored by `.gitignore`.
+
 ## 🔌 API Reference
 
 ### Stock Lookup Endpoint
@@ -131,6 +151,8 @@ GET /api/stock?symbol=AAPL
 | `npm run start` | ▶️ Start production server |
 | `npm run lint` | 🔍 Run ESLint |
 | `npm run type-check` | ✅ Run TypeScript compiler |
+| `npm run validate-env` | 🔧 Validate environment setup |
+| `npm run test:coverage` | 📊 Run tests with coverage |
 
 ### 🏗️ Code Quality
 
@@ -141,6 +163,41 @@ GET /api/stock?symbol=AAPL
 *Ensuring type safety, code consistency, and maintainability*
 
 </div>
+
+## 🐳 Running with Docker
+
+StockAI supports both development and production Docker environments:
+
+### 🚀 Quick Start with Docker
+
+```bash
+# 1️⃣ Build and run production container
+docker-compose up --build
+
+# 2️⃣ Or run development container with hot reloading
+docker-compose --profile dev up --build stockai-dev
+
+# 3️⃣ Access the application
+# Visit http://localhost:3000
+```
+
+### 🔧 Manual Docker Commands
+
+```bash
+# Build production image
+docker build -t stockai .
+
+# Run production container
+docker run -p 3000:3000 --env-file .env.local stockai
+
+# Build development image
+docker build -f Dockerfile.dev -t stockai:dev .
+
+# Run development container with volume mounting
+docker run -p 3000:3000 -v $(pwd):/app -v /app/node_modules stockai:dev
+```
+
+> **💡 Docker Benefits**: Consistent environment across development, testing, and production. Ideal for deployment and team collaboration.
 
 ---
 

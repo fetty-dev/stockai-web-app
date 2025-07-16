@@ -40,4 +40,29 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
-docs/utilities/
+
+# Docker
+.dockerignore
+**/node_modules
+
+# Testing
+coverage/
+*.lcov
+test-results/
+playwright-report/
+
+# Scripts (keep validation script, ignore others)
+scripts/*.log
+scripts/*.tmp
+
+# Temporary files
+*.tmp
+*.log
+
+# Security (keep audit config)
+# audit-ci.json
+
+# Documentation - exclude utilities except CLAUDE.md
+docs/utilities/TODO.md
+docs/utilities/UPDATE.md
+docs/utilities/GITHUB.md
