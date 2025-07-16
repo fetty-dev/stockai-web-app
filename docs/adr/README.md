@@ -40,4 +40,15 @@ ADRs are numbered sequentially:
 
 ## Current ADRs
 
-*No ADRs have been created yet. Add them as architectural decisions are made during development.*
+| Number | Title | Status | Date |
+|--------|-------|---------|------|
+| [0001](./0001-portfolio-dashboard-implementation.md) | Portfolio Dashboard Implementation | Accepted | 2025-07-16 |
+| [0002](./0002-week1-infrastructure-decisions.md) | Week 1 Infrastructure Setup | Accepted | 2025-07-16 |
+
+## Index by Topic
+
+### Frontend Architecture
+- [ADR-0001: Portfolio Dashboard Implementation](./0001-portfolio-dashboard-implementation.md)
+
+### Infrastructure & DevOps  
+- [ADR-0002: Week 1 Infrastructure Setup](./0002-week1-infrastructure-decisions.md)

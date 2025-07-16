@@ -1,4 +1,5 @@
 import { StockData, AlphaVantageQuote, AlphaVantageResponse } from '@/types'
+import { getAlphaVantageApiKey, sanitizeForLogging } from '@/utils/env'
 
 export class AlphaVantageError extends Error {
   constructor(message: string, public statusCode?: number) {
@@ -18,10 +19,7 @@ export async function fetchStockDataFromAlphaVantage(symbol: string): Promise<St
     throw new AlphaVantageError('Stock symbol must be 1-5 uppercase letters')
   }
 
-  const apiKey = process.env.ALPHA_VANTAGE_API_KEY
-  if (!apiKey) {
-    throw new AlphaVantageError('Alpha Vantage API key not configured')
-  }
+  const apiKey = getAlphaVantageApiKey()
 
   const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${cleanSymbol}&apikey=${apiKey}`
   
@@ -68,7 +66,11 @@ export async function fetchStockDataFromAlphaVantage(symbol: string): Promise<St
       throw new AlphaVantageError('Network error: Unable to reach Alpha Vantage API')
     }
     
-    throw new AlphaVantageError(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    // Sanitize error messages to prevent API key leakage
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const sanitizedMessage = errorMessage.replace(apiKey, sanitizeForLogging(apiKey))
+    
+    throw new AlphaVantageError(`Unexpected error: ${sanitizedMessage}`)
   }
 }
 
