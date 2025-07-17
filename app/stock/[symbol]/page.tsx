@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { StockData } from '@/types'
+import { AIExplanation } from '@/utils/openai'
 
 export default function StockPage() {
   const params = useParams()
@@ -12,6 +13,9 @@ export default function StockPage() {
   const [stockData, setStockData] = useState<StockData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [explanation, setExplanation] = useState<AIExplanation | null>(null)
+  const [explanationLoading, setExplanationLoading] = useState(false)
+  const [explanationError, setExplanationError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchStockData = async () => {
@@ -24,6 +28,8 @@ export default function StockPage() {
         
         if (data.success) {
           setStockData(data.data)
+          // Fetch AI explanation after stock data is loaded
+          fetchExplanation()
         } else {
           setError(data.error || 'Failed to fetch stock data')
         }
@@ -32,6 +38,27 @@ export default function StockPage() {
         console.error('Stock fetch error:', err)
       } finally {
         setLoading(false)
+      }
+    }
+
+    const fetchExplanation = async () => {
+      try {
+        setExplanationLoading(true)
+        setExplanationError(null)
+        
+        const response = await fetch(`/api/explain?symbol=${symbol}`)
+        const data = await response.json()
+        
+        if (data.success) {
+          setExplanation(data.data.explanation)
+        } else {
+          setExplanationError(data.error || 'Failed to generate explanation')
+        }
+      } catch (err) {
+        setExplanationError('Network error occurred')
+        console.error('Explanation fetch error:', err)
+      } finally {
+        setExplanationLoading(false)
       }
     }
 
@@ -208,7 +235,7 @@ export default function StockPage() {
           </div>
         </div>
 
-        {/* Coming Soon */}
+        {/* AI Analysis */}
         <div className="glass-card" style={{ padding: '1.5rem', marginTop: '2rem' }}>
           <h3 style={{ 
             fontSize: '1.125rem', 
@@ -218,16 +245,163 @@ export default function StockPage() {
           }}>
             🤖 AI Analysis
           </h3>
-          <div style={{ 
-            padding: '1rem', 
-            background: 'rgba(255, 255, 255, 0.05)', 
-            borderRadius: '8px',
-            textAlign: 'center' 
-          }}>
-            <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-              AI-powered explanations coming soon...
-            </p>
-          </div>
+          
+          {explanationLoading ? (
+            <div style={{ 
+              padding: '1rem', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              borderRadius: '8px',
+              textAlign: 'center' 
+            }}>
+              <div className="animate-spin" style={{ 
+                width: '2rem', 
+                height: '2rem', 
+                border: '2px solid rgba(255, 255, 255, 0.3)', 
+                borderTopColor: 'rgba(255, 255, 255, 0.9)', 
+                borderRadius: '50%', 
+                margin: '0 auto' 
+              }}></div>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginTop: '0.5rem' }}>
+                Generating AI explanation...
+              </p>
+            </div>
+          ) : explanationError ? (
+            <div style={{ 
+              padding: '1rem', 
+              background: 'rgba(239, 68, 68, 0.1)', 
+              borderRadius: '8px',
+              border: '1px solid rgba(239, 68, 68, 0.2)' 
+            }}>
+              <p style={{ color: '#f87171', marginBottom: '1rem' }}>
+                {explanationError}
+              </p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="glass-button"
+                style={{ padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+              >
+                Try Again
+              </button>
+            </div>
+          ) : explanation ? (
+            <div style={{ 
+              padding: '1rem', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              borderRadius: '8px' 
+            }}>
+              {/* Summary */}
+              <div style={{ marginBottom: '1rem' }}>
+                <h4 style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: '600', 
+                  color: 'rgba(255, 255, 255, 0.9)', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  Summary
+                </h4>
+                <p style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  {explanation.summary}
+                </p>
+              </div>
+              
+              {/* Key Factors */}
+              <div style={{ marginBottom: '1rem' }}>
+                <h4 style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: '600', 
+                  color: 'rgba(255, 255, 255, 0.9)', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  Key Factors
+                </h4>
+                <ul style={{ 
+                  paddingLeft: '1.5rem', 
+                  color: 'rgba(255, 255, 255, 0.8)' 
+                }}>
+                  {explanation.keyFactors.map((factor, index) => (
+                    <li key={index} style={{ marginBottom: '0.25rem' }}>
+                      {factor}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              
+              {/* Detailed Reasoning */}
+              <div style={{ marginBottom: '1rem' }}>
+                <h4 style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: '600', 
+                  color: 'rgba(255, 255, 255, 0.9)', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  Analysis
+                </h4>
+                <p style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  {explanation.reasoning}
+                </p>
+              </div>
+              
+              {/* Market Context */}
+              <div style={{ marginBottom: '1rem' }}>
+                <h4 style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: '600', 
+                  color: 'rgba(255, 255, 255, 0.9)', 
+                  marginBottom: '0.5rem' 
+                }}>
+                  Market Context
+                </h4>
+                <p style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                  {explanation.marketContext}
+                </p>
+              </div>
+              
+              {/* Confidence & Disclaimer */}
+              <div style={{ 
+                padding: '0.75rem', 
+                background: 'rgba(255, 255, 255, 0.05)', 
+                borderRadius: '6px',
+                marginTop: '1rem'
+              }}>
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  marginBottom: '0.5rem'
+                }}>
+                  <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.875rem' }}>
+                    Confidence Level:
+                  </span>
+                  <span style={{ 
+                    color: explanation.confidence === 'high' ? '#4ade80' : 
+                           explanation.confidence === 'medium' ? '#fbbf24' : '#f87171',
+                    fontSize: '0.875rem',
+                    fontWeight: '500'
+                  }}>
+                    {explanation.confidence.toUpperCase()}
+                  </span>
+                </div>
+                <p style={{ 
+                  color: 'rgba(255, 255, 255, 0.6)', 
+                  fontSize: '0.75rem',
+                  fontStyle: 'italic'
+                }}>
+                  {explanation.disclaimer}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div style={{ 
+              padding: '1rem', 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              borderRadius: '8px',
+              textAlign: 'center' 
+            }}>
+              <p style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                No AI analysis available
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

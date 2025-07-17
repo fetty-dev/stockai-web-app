@@ -79,6 +79,7 @@ export function validateEnvironment(): void {
   try {
     // Check required API keys
     getAlphaVantageApiKey()
+    getOpenAiApiKey()
     
     // Check Node environment
     const nodeEnv = process.env.NODE_ENV || 'development'
