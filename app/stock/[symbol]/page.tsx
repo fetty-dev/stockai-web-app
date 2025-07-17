@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { StockData } from '@/types'
 import { AIExplanation } from '@/utils/openai'
+import StockChart from '@/components/StockChart'
 
 export default function StockPage() {
   const params = useParams()
@@ -116,7 +117,7 @@ export default function StockPage() {
 
   return (
     <div style={{ minHeight: '100vh', padding: '1.5rem' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h1 className="gradient-text" style={{ fontSize: '2rem', fontWeight: 'bold' }}>
@@ -131,8 +132,23 @@ export default function StockPage() {
           </button>
         </div>
 
-        {/* Stock Data Card */}
-        <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem' }}>
+        {/* Main Content Layout */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
+          gap: '2rem'
+        }}>
+          {/* Left Column - Stock Data & Sources */}
+          <div>
+            {/* Live Stock Chart */}
+            <StockChart 
+              symbol={stockData.symbol}
+              currentPrice={stockData.price}
+              change={stockData.change}
+            />
+            
+            {/* Stock Data Card */}
+            <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem' }}>
           <div style={{ marginBottom: '1.5rem' }}>
             <h2 style={{ 
               fontSize: '1.5rem', 
@@ -233,10 +249,13 @@ export default function StockPage() {
               </span>
             </div>
           </div>
-        </div>
+            </div>
+          </div>
 
-        {/* AI Analysis */}
-        <div className="glass-card" style={{ padding: '1.5rem', marginTop: '2rem' }}>
+          {/* Right Column - AI Analysis */}
+          <div>
+            {/* AI Analysis */}
+            <div className="glass-card" style={{ padding: '1.5rem' }}>
           <h3 style={{ 
             fontSize: '1.125rem', 
             fontWeight: '600', 
@@ -402,6 +421,8 @@ export default function StockPage() {
               </p>
             </div>
           )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

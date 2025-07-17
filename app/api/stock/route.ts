@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
     // Fetch stock data from Alpha Vantage
     const stockData = await fetchStockDataFromAlphaVantage(symbol)
 
-    // Create source attribution
+    // Create source attribution with mock data indicator if needed
     const sources: SourceAttribution[] = [
       {
-        source: 'Alpha Vantage',
+        source: (stockData as any).isMockData ? 'Mock Data (Demo)' : 'Alpha Vantage',
         timestamp: new Date(),
         apiVersion: 'v1'
       }
