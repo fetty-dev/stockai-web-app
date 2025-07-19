@@ -60,6 +60,16 @@ export function getOpenAiApiKey(): string {
 }
 
 /**
+ * Get Finnhub API key with validation
+ */
+export function getFinnhubApiKey(): string {
+  return getRequiredEnvVar('FINNHUB_API_KEY', (key) => {
+    // Finnhub keys are alphanumeric strings
+    return key.length >= 8 && /^[A-Za-z0-9_]+$/.test(key)
+  })
+}
+
+/**
  * Sanitize sensitive data for logging (replaces with asterisks)
  */
 export function sanitizeForLogging(value: string, visibleChars: number = 4): string {
@@ -80,6 +90,14 @@ export function validateEnvironment(): void {
     // Check required API keys
     getAlphaVantageApiKey()
     getOpenAiApiKey()
+    
+    // Check optional API keys (for enhanced functionality)
+    try {
+      getFinnhubApiKey()
+      console.log('✅ Finnhub API key available - enhanced stock data enabled')
+    } catch (error) {
+      console.log('⚠️ Finnhub API key not found - using Alpha Vantage only')
+    }
     
     // Check Node environment
     const nodeEnv = process.env.NODE_ENV || 'development'

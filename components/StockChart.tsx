@@ -91,7 +91,7 @@ export default function StockChart({ symbol, currentPrice, change }: StockChartP
           color: 'rgba(255, 255, 255, 0.9)', 
           marginBottom: '0.5rem' 
         }}>
-          📊 Today's Chart
+          📊 Today&apos;s Chart
         </h3>
         <p style={{ 
           fontSize: '0.875rem', 

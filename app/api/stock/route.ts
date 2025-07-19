@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchStockDataFromAlphaVantage, AlphaVantageError } from '@/utils/alpha-vantage'
+import { fetchStockData, getSourceAttribution, HybridStockApiError } from '@/utils/hybrid-stock-api'
 import { StockQuoteResponse, SourceAttribution } from '@/types'
 
 export async function GET(request: NextRequest) {
@@ -18,17 +18,20 @@ export async function GET(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Fetch stock data from Alpha Vantage
-    const stockData = await fetchStockDataFromAlphaVantage(symbol)
+    // Fetch stock data using hybrid approach (Finnhub -> Alpha Vantage -> Mock)
+    const stockDataResult = await fetchStockData(symbol)
 
-    // Create source attribution with mock data indicator if needed
+    // Create source attribution based on actual data source
     const sources: SourceAttribution[] = [
       {
-        source: (stockData as any).isMockData ? 'Mock Data (Demo)' : 'Alpha Vantage',
+        source: getSourceAttribution(stockDataResult),
         timestamp: new Date(),
         apiVersion: 'v1'
       }
     ]
+
+    // Remove hybrid-specific fields before returning
+    const { source, isMockData, ...stockData } = stockDataResult
 
     // Return successful response
     return NextResponse.json<StockQuoteResponse>({
@@ -40,14 +43,14 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Stock API Error:', error)
 
-    // Handle Alpha Vantage specific errors
-    if (error instanceof AlphaVantageError) {
+    // Handle hybrid stock API specific errors
+    if (error instanceof HybridStockApiError) {
       const statusCode = error.statusCode || 400
       
       return NextResponse.json<StockQuoteResponse>({
         success: false,
         error: error.message,
-        message: 'Failed to fetch stock data',
+        message: 'Failed to fetch stock data from all sources',
         sources: []
       }, { status: statusCode })
     }

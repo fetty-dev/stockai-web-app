@@ -17,6 +17,9 @@ export default function StockPage() {
   const [explanation, setExplanation] = useState<AIExplanation | null>(null)
   const [explanationLoading, setExplanationLoading] = useState(false)
   const [explanationError, setExplanationError] = useState<string | null>(null)
+  const [chatMessage, setChatMessage] = useState('')
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([])
+  const [chatLoading, setChatLoading] = useState(false)
 
   useEffect(() => {
     const fetchStockData = async () => {
@@ -70,6 +73,64 @@ export default function StockPage() {
 
   const handleNewSearch = () => {
     router.push('/')
+  }
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!chatMessage.trim() || chatLoading) return
+
+    const userMessage = chatMessage.trim()
+    setChatMessage('')
+    setChatLoading(true)
+
+    // Add user message to chat
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }])
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          symbol: stockData?.symbol,
+          stockData,
+          conversationHistory: chatMessages
+        })
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setChatMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: data.message 
+        }])
+
+        // If AI provided clarifying questions, add them as suggestions
+        if (data.clarifyingQuestions && data.clarifyingQuestions.length > 0) {
+          const questionsText = `\n\nHere are some related questions I can help with:\n${data.clarifyingQuestions.map((q: string, i: number) => `${i + 1}. ${q}`).join('\n')}`
+          setChatMessages(prev => {
+            const updated = [...prev]
+            updated[updated.length - 1].content += questionsText
+            return updated
+          })
+        }
+      } else {
+        setChatMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: `Sorry, I encountered an error: ${data.error}` 
+        }])
+      }
+    } catch (error) {
+      setChatMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Sorry, I\'m having trouble connecting right now. Please try again.' 
+      }])
+    } finally {
+      setChatLoading(false)
+    }
   }
 
   if (loading) {
@@ -132,21 +193,166 @@ export default function StockPage() {
           </button>
         </div>
 
-        {/* Main Content Layout */}
+        {/* Main Content Layout - Chart Focused */}
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', 
-          gap: '2rem'
+          gridTemplateColumns: '2fr 1fr', 
+          gap: '2rem',
+          minHeight: '70vh'
         }}>
-          {/* Left Column - Stock Data & Sources */}
+          {/* Left Column - Chart and AI Chat */}
           <div>
-            {/* Live Stock Chart */}
+            {/* Live Stock Chart - Main Focus */}
             <StockChart 
               symbol={stockData.symbol}
               currentPrice={stockData.price}
               change={stockData.change}
             />
             
+            {/* AI Chat Interface */}
+            <div className="glass-card" style={{ padding: '1.5rem', marginTop: '2rem' }}>
+              <h3 style={{ 
+                fontSize: '1.125rem', 
+                fontWeight: '600', 
+                color: 'rgba(255, 255, 255, 0.9)', 
+                marginBottom: '1rem' 
+              }}>
+                🤖 Chat with AI about {stockData.symbol}
+              </h3>
+              
+              {/* Chat Messages Area */}
+              <div style={{ 
+                height: '300px', 
+                overflowY: 'auto', 
+                marginBottom: '1rem',
+                padding: '1rem',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px'
+              }}>
+                {chatMessages.length === 0 ? (
+                  <div style={{ 
+                    padding: '0.75rem', 
+                    background: 'rgba(59, 130, 246, 0.1)', 
+                    borderRadius: '8px',
+                    marginBottom: '1rem',
+                    border: '1px solid rgba(59, 130, 246, 0.3)'
+                  }}>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '0.875rem' }}>
+                      👋 Hi! I&apos;m your AI stock analyst. I can help you understand {stockData.symbol}&apos;s performance, 
+                      market trends, recent news, and answer any questions about this stock. 
+                      I can search the web for the latest information if needed.
+                    </p>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem', marginTop: '0.5rem' }}>
+                      Try asking: &quot;What&apos;s driving {stockData.symbol}&apos;s price today?&quot; or &quot;Tell me about recent news for this company&quot;
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {chatMessages.map((msg, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          marginBottom: '1rem',
+                          padding: '0.75rem',
+                          borderRadius: '8px',
+                          background: msg.role === 'user' 
+                            ? 'rgba(34, 197, 94, 0.1)' 
+                            : 'rgba(59, 130, 246, 0.1)',
+                          border: msg.role === 'user'
+                            ? '1px solid rgba(34, 197, 94, 0.3)'
+                            : '1px solid rgba(59, 130, 246, 0.3)',
+                          marginLeft: msg.role === 'user' ? '2rem' : '0',
+                          marginRight: msg.role === 'assistant' ? '2rem' : '0'
+                        }}
+                      >
+                        <div style={{ 
+                          fontSize: '0.75rem', 
+                          color: 'rgba(255, 255, 255, 0.6)', 
+                          marginBottom: '0.25rem' 
+                        }}>
+                          {msg.role === 'user' ? '👤 You' : '🤖 AI Analyst'}
+                        </div>
+                        <p style={{ 
+                          color: 'rgba(255, 255, 255, 0.9)', 
+                          fontSize: '0.875rem',
+                          whiteSpace: 'pre-wrap',
+                          margin: 0
+                        }}>
+                          {msg.content}
+                        </p>
+                      </div>
+                    ))}
+                    {chatLoading && (
+                      <div style={{
+                        padding: '0.75rem',
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(59, 130, 246, 0.3)',
+                        marginRight: '2rem'
+                      }}>
+                        <div style={{ 
+                          fontSize: '0.75rem', 
+                          color: 'rgba(255, 255, 255, 0.6)', 
+                          marginBottom: '0.25rem' 
+                        }}>
+                          🤖 AI Analyst
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <div className="animate-spin" style={{ 
+                            width: '1rem', 
+                            height: '1rem', 
+                            border: '2px solid rgba(255, 255, 255, 0.3)', 
+                            borderTopColor: 'rgba(255, 255, 255, 0.9)', 
+                            borderRadius: '50%' 
+                          }}></div>
+                          <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.875rem' }}>
+                            Analyzing...
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              
+              {/* Chat Input */}
+              <form onSubmit={handleChatSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  placeholder={`Ask me anything about ${stockData.symbol}...`}
+                  disabled={chatLoading}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: 'rgba(255, 255, 255, 0.9)',
+                    outline: 'none',
+                    opacity: chatLoading ? 0.7 : 1
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={!chatMessage.trim() || chatLoading}
+                  className="glass-button"
+                  style={{ 
+                    padding: '0.75rem 1.5rem', 
+                    whiteSpace: 'nowrap',
+                    opacity: (!chatMessage.trim() || chatLoading) ? 0.5 : 1,
+                    cursor: (!chatMessage.trim() || chatLoading) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {chatLoading ? '...' : 'Send'}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* Right Column - Stock Data & AI Analysis */}
+          <div>
             {/* Stock Data Card */}
             <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem' }}>
           <div style={{ marginBottom: '1.5rem' }}>
@@ -210,10 +416,10 @@ export default function StockPage() {
             </div>
             <div>
               <div style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.6)' }}>
-                Last Updated
+                Market Cap
               </div>
               <div style={{ fontSize: '1rem', color: 'rgba(255, 255, 255, 0.9)' }}>
-                {new Date(stockData.lastUpdated).toLocaleTimeString()}
+                ${(stockData.marketCap / 1000).toFixed(1)}B
               </div>
             </div>
           </div>

@@ -7,10 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2025-07-17
+
 ### Added
-- Planned AI explanation features (Issue #13-15)
-- Chat interface development (Issue #19-22)
-- Request quota system (Issue #17)
+- **AI-Powered Stock Analysis**: Complete OpenAI integration with structured stock explanations
+- **Interactive Chat System**: Real-time chat interface for stock-specific Q&A
+- **Hybrid Data Fetching**: Multi-source API system with intelligent fallback (Finnhub → Alpha Vantage → Mock)
+- **Enhanced Stock Pages**: Redesigned stock detail pages with two-column layout and integrated chat
+- **New API Endpoints**: 
+  - `/api/explain` - AI-powered stock explanations with educational focus
+  - `/api/chat` - Interactive chat about specific stocks
+- **Robust Rate Limiting**: Automatic fallback when APIs reach rate limits
+- **Data Source Attribution**: Transparent indication of data sources for all responses
+
+### Changed
+- **Stock API Enhancement**: Upgraded `/api/stock` to use hybrid data fetching system
+- **Frontend Architecture**: Complete redesign of stock detail pages with chart-focused layout
+- **Environment Management**: Enhanced validation for multiple API keys (Finnhub, OpenAI, Alpha Vantage)
+- **Error Handling**: Improved error handling across all API endpoints with proper fallbacks
+
+### Fixed
+- **API Rate Limit Issues**: Intelligent fallback prevents service interruption
+- **Data Reliability**: Multiple data sources ensure consistent stock information availability
+
+### Security
+- **API Key Sanitization**: Enhanced security for logging and error handling across all services
+- **Investment Disclaimers**: Appropriate risk warnings in all AI-generated content
 
 ## [0.2.0] - 2025-07-16
 

@@ -32,6 +32,7 @@ export interface AlphaVantageResponse {
   'Global Quote': AlphaVantageQuote
   'Error Message'?: string
   'Note'?: string
+  'Information'?: string
 }
 
 // Source attribution for data transparency
