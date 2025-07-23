@@ -10,11 +10,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:a11y": "next lint --fix",
     "type-check": "tsc --noEmit",
     "validate-env": "node scripts/validate-env.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:a11y": "jest --testNamePattern=accessibility",
+    "test:a11y:watch": "jest --watch --testNamePattern=accessibility"
   },
   "repository": {
     "type": "git",
@@ -44,16 +47,21 @@
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "@axe-core/react": "^4.10.2",
+    "@eslint/eslintrc": "^3.3.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
+    "@types/jest-axe": "^3.5.9",
     "audit-ci": "^7.1.0",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.30.1",
     "eslint-config-next": "^15.3.5",
     "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "jest": "^30.0.4",
+    "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^30.0.4",
     "postcss": "^8.5.6",
     "ts-jest": "^29.4.0"

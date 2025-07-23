@@ -35,20 +35,23 @@ export async function explainStockMove(stockData: StockData): Promise<AIExplanat
   
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4.1-nano-2025-04-14',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: `You are a financial analyst providing clear, educational explanations of stock price movements. 
-          Always provide balanced analysis and include appropriate disclaimers about investment risks.
+          content: `You are an expert financial analyst providing clear, educational explanations of stock price movements for beginner investors.
+          
+          Always provide balanced, educational analysis and include appropriate disclaimers about investment risks.
+          Focus on helping users understand market movements rather than giving investment advice.
+          
           Format your response as JSON with the following structure:
           {
-            "summary": "Brief explanation of price movement",
-            "reasoning": "Detailed analysis of factors",
-            "keyFactors": ["factor1", "factor2", "factor3"],
-            "marketContext": "Broader market context",
+            "summary": "Brief, clear explanation of the price movement in simple terms",
+            "reasoning": "Detailed analysis of likely factors causing this movement",
+            "keyFactors": ["3-4 specific factors that may have influenced the price"],
+            "marketContext": "How this fits into broader market trends and conditions",
             "confidence": "high|medium|low",
-            "disclaimer": "Investment disclaimer"
+            "disclaimer": "Educational disclaimer about investment risks"
           }`
         },
         {

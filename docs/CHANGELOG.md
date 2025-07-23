@@ -7,6 +7,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-07-23
+
+### Added
+- **Comprehensive Accessibility Infrastructure**: Complete WCAG 2.1 compliance tooling and framework
+  - `eslint-plugin-jsx-a11y` for static accessibility analysis with recommended rules
+  - `jest-axe` for automated accessibility testing in Jest test suite
+  - `@axe-core/react` for real-time accessibility feedback during development
+  - Custom accessibility testing utilities in `utils/test-utils.tsx`
+- **Enhanced Development Scripts**: New npm scripts for accessibility workflow
+  - `npm run lint:a11y` - Accessibility linting with auto-fix capabilities
+  - `npm run test:a11y` - Run accessibility tests only with filtering
+  - `npm run test:a11y:watch` - Watch mode for accessibility test development
+- **Development Environment Integration**: Real-time accessibility monitoring
+  - Webpack configuration for axe-core integration in development
+  - Browser console accessibility violation reporting
+  - Automatic accessibility checks during local development
+
+### Changed  
+- **ESLint Configuration**: Migrated to ESLint v9 flat config format (`eslint.config.mjs`)
+- **Jest Setup**: Extended with accessibility testing matchers and utilities
+- **TypeScript Support**: Added comprehensive type definitions for accessibility testing
+- **AI Chat Optimization**: Improved GPT model selection and response quality
+  - Upgraded to GPT-4o-mini for cost-effective, high-quality responses
+  - Enhanced conversation context management and error handling
+  - Removed broken web search placeholders for cleaner user experience
+
+### Fixed
+- **AI Chat Response Issues**: Resolved technical response artifacts and improved coherence
+  - Eliminated exposed internal flags like "shouldSearchWeb: true"
+  - Fixed JSON response parsing to provide natural conversational responses
+  - Improved conversation history management for better context retention
+
+### Infrastructure
+- **Accessibility Foundation**: Established multi-layered accessibility testing approach
+  - Static analysis during development (ESLint)
+  - Automated testing in CI/CD pipeline (Jest + axe)
+  - Real-time feedback during development (@axe-core/react)
+- **Documentation Updates**: Updated project documentation to reflect accessibility improvements
+- **Code Quality**: Enhanced development workflow with accessibility-first approach
+
 ## [0.3.0] - 2025-07-17
 
 ### Added

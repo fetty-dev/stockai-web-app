@@ -63,7 +63,14 @@ scripts/*.tmp
 # Security (keep audit config)
 # audit-ci.json
 
-# Documentation - exclude utilities except CLAUDE.md
-docs/utilities/TODO.md
-docs/utilities/UPDATE.md
-docs/utilities/GITHUB.md
+# Documentation - exclude utilities and session logs
+docs/utilities/
+docs/logs/session-*.md
+
+# Accessibility testing artifacts
+/a11y-results/
+*.a11y.json
+
+# Development artifacts
+utils/axe-setup.js.map
+*.accessibility.log

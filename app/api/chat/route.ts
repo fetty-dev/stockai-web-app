@@ -7,8 +7,6 @@ export interface ChatResponse {
   message?: string
   sources?: string[]
   error?: string
-  shouldSearchWeb?: boolean
-  clarifyingQuestions?: string[]
 }
 
 const openai = new OpenAI({
@@ -27,43 +25,40 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Create enhanced prompt with stock data and web search capabilities
-    const systemPrompt = `You are an expert stock analyst AI assistant specializing in ${symbol}. You have access to current stock data and can search the web for additional information when needed.
+    // Create comprehensive system prompt for financial analysis
+    const systemPrompt = `You are an expert financial analyst AI specializing in ${symbol}. You provide clear, educational, and helpful analysis.
 
 Current Stock Data for ${symbol}:
-- Price: $${stockData?.price || 'N/A'}
-- Change: ${stockData?.change >= 0 ? '+' : ''}$${stockData?.change || 'N/A'} (${stockData?.changePercent || 'N/A'}%)
-- Volume: ${stockData?.volume?.toLocaleString() || 'N/A'}
-- Market Cap: $${stockData?.marketCap ? (stockData.marketCap / 1000).toFixed(1) + 'B' : 'N/A'}
+- Current Price: $${stockData?.price || 'N/A'}
+- Price Change: ${stockData?.change >= 0 ? '+' : ''}$${stockData?.change || 'N/A'} (${stockData?.changePercent || 'N/A'}%)
+- Trading Volume: ${stockData?.volume?.toLocaleString() || 'N/A'} shares
+- Market Cap: ${stockData?.marketCap ? '$' + (stockData.marketCap / 1000000000).toFixed(1) + 'B' : 'N/A'}
 - Company: ${stockData?.companyName || symbol}
 
-Guidelines:
-1. Provide helpful, accurate analysis about ${symbol}
-2. If you need current news, earnings data, or recent events, indicate you should search the web
-3. Ask clarifying questions when the user's question is vague
-4. Use the provided stock data in your analysis
-5. Be conversational but professional
-6. Explain complex financial concepts in simple terms
-7. Always include appropriate disclaimers about investment risks
+Your role:
+1. Provide helpful, accurate analysis based on the current stock data
+2. Explain financial concepts in simple, beginner-friendly terms
+3. Use the provided stock data to give specific insights
+4. Be conversational and engaging, like a knowledgeable friend
+5. Always include appropriate investment risk disclaimers
+6. Focus on educational content rather than investment advice
+7. If asked about recent news or events you don't know about, acknowledge the limitation
 
-If you determine web search is needed, respond with "shouldSearchWeb": true.
-If you need clarification, provide up to 3 relevant clarifying questions.
+Important: Respond with natural, conversational text only. Do not use JSON format or include technical metadata.`
 
-Provide a helpful, conversational response about the stock. If you need current news or recent data to give a complete answer, mention that you'll search for latest information.`
-
+    // Build conversation messages with proper context
     const messages = [
       { role: 'system', content: systemPrompt },
-      ...conversationHistory,
+      ...conversationHistory.slice(-6), // Keep last 6 messages for context while staying within limits
       { role: 'user', content: message }
     ]
 
-    // First, get AI response to determine if web search is needed
+    // Get AI response
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o-mini',
       messages,
       temperature: 0.7,
-      max_tokens: 1000
-      // Remove JSON format requirement to avoid nested JSON issues
+      max_tokens: 800
     })
 
     const aiResponse = completion.choices[0]?.message?.content
@@ -72,72 +67,22 @@ Provide a helpful, conversational response about the stock. If you need current 
       throw new Error('Empty response from OpenAI')
     }
 
-    let responseData
+    // Clean response and add disclaimers if needed
+    let cleanResponse = aiResponse.trim()
     
-    // Try to parse as JSON first
-    try {
-      responseData = JSON.parse(aiResponse)
-    } catch (error) {
-      // If not valid JSON, treat as regular text and check for web search indicators
-      const needsWebSearch = aiResponse.toLowerCase().includes('search') || 
-                            aiResponse.toLowerCase().includes('latest') ||
-                            aiResponse.toLowerCase().includes('current news') ||
-                            aiResponse.toLowerCase().includes('recent')
-      
-      responseData = {
-        message: aiResponse,
-        shouldSearchWeb: needsWebSearch,
-        clarifyingQuestions: []
-      }
-    }
-
-    // If AI indicates web search is needed, perform search
-    if (responseData.shouldSearchWeb) {
-      try {
-        // Construct search query based on the user's question and stock symbol
-        const searchQuery = `${symbol} stock ${message} latest news ${new Date().getFullYear()}`
-        
-        // Use WebSearch to get current information
-        const searchResults = await performWebSearch(searchQuery)
-        
-        // Create enhanced prompt with search results
-        const enhancedPrompt = `${systemPrompt}
-
-Recent Web Search Results for "${searchQuery}":
-${searchResults}
-
-Now please provide a comprehensive answer using both the stock data and the search results. Be sure to cite relevant information from the search results.`
-
-        const enhancedCompletion = await openai.chat.completions.create({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: enhancedPrompt },
-            { role: 'user', content: message }
-          ],
-          temperature: 0.7,
-          max_tokens: 1200
-        })
-
-        const enhancedResponse = enhancedCompletion.choices[0]?.message?.content || responseData.message
-        
-        return NextResponse.json<ChatResponse>({
-          success: true,
-          message: enhancedResponse,
-          sources: ['OpenAI GPT-4', 'Web Search Results'],
-          shouldSearchWeb: false
-        })
-        
-      } catch (searchError) {
-        console.error('Web search failed:', searchError)
-        // Return original response if search fails
-      }
+    // Add disclaimer if not already present and discussing financial advice
+    if (!cleanResponse.toLowerCase().includes('disclaimer') && 
+        !cleanResponse.toLowerCase().includes('not financial advice') &&
+        (cleanResponse.toLowerCase().includes('buy') || 
+         cleanResponse.toLowerCase().includes('sell') ||
+         cleanResponse.toLowerCase().includes('invest'))) {
+      cleanResponse += "\n\n*Disclaimer: This analysis is for educational purposes only and should not be considered financial advice. Always do your own research and consult with financial professionals before making investment decisions.*"
     }
 
     return NextResponse.json<ChatResponse>({
       success: true,
-      message: responseData.message || responseData.analysis || 'I can help you analyze this stock. What would you like to know?',
-      clarifyingQuestions: responseData.clarifyingQuestions,
-      sources: ['OpenAI GPT-4', 'Current Stock Data']
+      message: cleanResponse,
+      sources: ['OpenAI GPT-4o-mini', 'Current Stock Data']
     })
 
   } catch (error) {
@@ -151,30 +96,6 @@ Now please provide a comprehensive answer using both the stock data and the sear
       success: false,
       error: `Failed to process chat message: ${sanitizedMessage}`
     }, { status: 500 })
-  }
-}
-
-async function performWebSearch(query: string): Promise<string> {
-  try {
-    // This would integrate with a web search API
-    // For now, return a placeholder that indicates search capability
-    return `[Web search capability enabled - would search for: "${query}"]
-    
-Note: In a production environment, this would return real-time search results about ${query}, including:
-- Latest news articles
-- Recent earnings reports
-- Market analysis
-- Company announcements
-- Industry trends
-    
-To enable full web search, integrate with services like:
-- Google Custom Search API
-- Bing Search API
-- NewsAPI
-- Financial news aggregators`
-  } catch (error) {
-    console.error('Web search error:', error)
-    return 'Web search temporarily unavailable'
   }
 }
 
